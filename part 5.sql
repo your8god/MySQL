@@ -615,3 +615,861 @@ SELECT
     COUNT(*) AS total
 FROM Sessions
 WHERE duration / 60 >= 15;
+
+--3
+DROP TABLE IF EXISTS Files;
+CREATE TABLE Files
+(
+    file_name VARCHAR(30),
+    content   TEXT
+);
+
+TRUNCATE Files;
+INSERT INTO Files (file_name, content)
+VALUES ('file312.txt', 'Geeks know how to put into practice the acquired knowledge'),
+       ('file52.txt', 'The first images of bee are in the rock paintings of ancient people'),
+       ('file132.txt', 'If talk to this geek for 30 minutes, it begins to seem that he has the hearing of a bat'),
+       ('file1.txt', 'All worker bees are females'),
+       ('file5.txt', 'The bee has two huge beautiful eyes on the sides of its head'),
+       ('file18.txt', 'Otaku: geek of anime'),
+       ('file289.txt', 'A bee has six legs'),
+       ('file192.txt', 'They know something that many people don’t know. Geeks constantly study'),
+       ('file107.txt', 'Whovian: Doctor Who Maniac Fan'),
+       ('file10.txt', 'Large amounts of smoke can anger a bee'),
+       ('file130.txt', 'bee'),
+       ('file59.txt', 'A person is not stung by a swarming bees'),
+       ('file33.txt', 'Bee were highly revered in ancient Egypt'),
+       ('file66.txt', 'Bees can dance'),
+       ('file67.txt', 'Geek are a specific layer of society’s culture'),
+       ('file45.txt', 'Queen bee are almost 2 times larger than workers'),
+       ('file141.txt', 'developed by the BEEGEEK team'),
+       ('file230.txt', 'Yes, sometimes listening to an hour-long speech by a geek'),
+       ('file180.txt', 'Geek'),
+       ('file162.txt', 'A geek who knows Vulcan greetings'),
+       ('file114.txt', 'Gamer: a type of geek with amazing coordination of movements'),
+       ('file115.txt', 'Roleplayer: chameleon and actor of the world of the geeks'),
+       ('file7.txt', 'Bee distinguishes colors');
+
+SELECT 
+    'bee' AS word, 
+    COUNT(*) AS count 
+FROM Files
+WHERE content LIKE ' bee ' OR content LIKE 'bee ' OR content LIKE ' bee'
+UNION
+SELECT 
+    'geek' AS word, 
+    COUNT(*) AS count 
+FROM Files
+WHERE content LIKE ' geek ' OR content LIKE 'geek ' OR content LIKE ' geek';
+
+--4
+DROP TABLE IF EXISTS Programmers;
+DROP TABLE IF EXISTS Physicists;
+DROP TABLE IF EXISTS Mathematicians;
+
+-- Создание таблицы Mathematicians
+CREATE TABLE Mathematicians
+(
+    id      INT PRIMARY KEY AUTO_INCREMENT,
+    name    VARCHAR(30),
+    surname VARCHAR(30)
+);
+
+TRUNCATE Mathematicians;
+INSERT INTO Mathematicians (name, surname)
+VALUES ('Leonhard', 'Euler'),
+       ('Carl', 'Gauss'),
+       ('Isaac', 'Newton'),
+       ('Euclid', 'Alexandria'),
+       ('Albert', 'Einstein'),
+       ('John', 'Milnor'),
+       ('Blaise', 'Pascal'),
+       ('Rene', 'Descartes'),
+       ('Andrew', 'Wiles'),
+       ('Srinivasa', 'Ramanujan'),
+       ('John', 'Nash'),
+       ('Kurt', 'Godel');
+
+-- Создание таблицы Physicists
+CREATE TABLE Physicists
+(
+    id      INT PRIMARY KEY AUTO_INCREMENT,
+    name    VARCHAR(30),
+    surname VARCHAR(30)
+);
+
+TRUNCATE Physicists;
+INSERT INTO Physicists (name, surname)
+VALUES ('Richard', 'Muller'),
+       ('Isaac', 'Newton'),
+       ('Galileo', 'Galilei'),
+       ('Niels', 'Bohr'),
+       ('Richard', 'Feynman');
+
+-- Создание таблицы Programmers
+CREATE TABLE Programmers
+(
+    id      INT PRIMARY KEY AUTO_INCREMENT,
+    name    VARCHAR(30),
+    surname VARCHAR(30)
+);
+
+TRUNCATE Programmers;
+INSERT INTO Programmers (name, surname)
+VALUES ('Alan', 'Turing'),
+       ('Grace', 'Hopper'),
+       ('Linus', 'Torvalds'),
+       ('Tim', 'Berners'),
+       ('Ada', 'Lovelace'),
+       ('John', 'Neumann'),
+       ('Dennis', 'Ritchie'),
+       ('Tim', 'Peters'),
+       ('Donald', 'Knuth'),
+       ('Larry', 'Page');
+
+SELECT name, surname FROM
+(
+    SELECT *, 0 AS S FROM Mathematicians
+    UNION
+    SELECT *, 1 FROM Physicists
+    UNION
+    SELECT *, 2 FROM Programmers
+) AS T
+ORDER BY S, name DESC, surname DESC;
+
+
+/*  
+****    7.5    ****
+*/
+
+--1
+DROP TABLE IF EXISTS Teams;
+CREATE TABLE Teams
+(
+    name VARCHAR(50)
+);
+
+INSERT INTO Teams (name)
+VALUES ('Manchester United'),
+       ('Liverpool FC'),
+       ('Chelsea FC'),
+       ('Arsenal FC'),
+       ('Manchester City'),
+       ('Tottenham Hotspur'),
+       ('Everton FC'),
+       ('Leicester City'),
+       ('West Ham United'),
+       ('Aston Villa FC');
+
+SELECT T1.name home_team, T2.name away_team 
+FROM Teams T1 CROSS JOIN Teams T2 
+WHERE T1.name != T2.name; 
+
+--2
+DROP TABLE IF EXISTS Elements;
+CREATE TABLE Elements
+(
+    symbol VARCHAR(2),
+    type   VARCHAR(10)
+);
+
+INSERT INTO Elements (symbol, type)
+VALUES ('H', 'nonmetal'),
+       ('Li', 'metal'),
+       ('Be', 'metal'),
+       ('C', 'nonmetal'),
+       ('Ne', 'noble'),
+       ('F', 'nonmetal'),
+       ('Na', 'metal'),
+       ('Mg', 'metal'),
+       ('O', 'nonmetal'),
+       ('N', 'nonmetal'),
+       ('Al', 'metal'),
+       ('P', 'nonmetal'),
+       ('Ar', 'noble'),
+       ('K', 'metal'),
+       ('S', 'nonmetal'),
+       ('Ca', 'metal'),
+       ('Cl', 'nonmetal'),
+       ('Kr', 'noble'),
+       ('Rb', 'metal'),
+       ('Br', 'nonmetal');
+
+SELECT E1.symbol metal, E2.symbol nonmetal
+FROM Elements E1, Elements E2 
+WHERE E1.type = 'metal' AND E2.type = 'nonmetal';
+
+--3
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Products;
+
+-- Создание таблицы Products
+CREATE TABLE Products
+(
+    id    INT PRIMARY KEY AUTO_INCREMENT,
+    price DECIMAL(10, 2)
+);
+
+INSERT INTO Products (price)
+VALUES (10.00),
+       (25.50),
+       (15.75),
+       (30.25),
+       (12.99),
+       (5.99),
+       (40.00),
+       (18.50),
+       (8.75),
+       (22.00),
+       (14.50),
+       (9.99),
+       (35.75),
+       (20.00),
+       (7.25),
+       (13.75),
+       (27.50),
+       (11.99),
+       (32.00),
+       (17.25);
+
+-- Создание таблицы Orders
+CREATE TABLE Orders
+(
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    product_id INT,
+    user_id    INT,
+    quantity   INT
+);
+
+TRUNCATE Orders;
+INSERT INTO Orders (product_id, user_id, quantity)
+VALUES (1, 101, 10),
+       (2, 101, 2),
+       (3, 102, 5),
+       (4, 102, 3),
+       (5, 103, 4),
+       (6, 104, 7),
+       (7, 104, 1),
+       (8, 105, 3),
+       (9, 105, 6),
+       (10, 106, 2),
+       (11, 106, 2),
+       (12, 107, 9),
+       (13, 107, 4),
+       (14, 108, 8),
+       (15, 108, 2),
+       (16, 109, 5),
+       (17, 109, 3),
+       (18, 110, 6),
+       (19, 110, 4),
+       (20, 111, 2);
+
+SELECT user_id, SUM(quantity * price) spending
+FROM Orders JOIN Products ON Products.id = product_id
+GROUP BY 1
+ORDER BY 2 DESC;
+
+--4
+DROP TABLE IF EXISTS Invoices;
+DROP TABLE IF EXISTS Products;
+
+-- Создание таблицы Products
+CREATE TABLE Products
+(
+    id   INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50)
+);
+
+INSERT INTO Products (name)
+VALUES ('Apple iPhone 13 Pro'),
+       ('Samsung Galaxy S21'),
+       ('Sony WH-1000XM4 Headphones'),
+       ('Nike Air Zoom Pegasus 38'),
+       ('Adidas Ultraboost 21'),
+       ('Lenovo ThinkPad X1 Carbon'),
+       ('Dell XPS 13 Laptop'),
+       ('Canon EOS R6 Camera'),
+       ('Bose QuietComfort 35 II'),
+       ('Samsung 65-inch QLED TV'),
+       ('LG OLED55CXPUA TV'),
+       ('Apple AirPods Pro'),
+       ('Fitbit Versa 3'),
+       ('PlayStation 5'),
+       ('Xbox Series X'),
+       ('Amazon Echo Dot (4th Gen)'),
+       ('GoPro HERO9 Black'),
+       ('Samsung Galaxy Tab S7'),
+       ('Dyson V11 Animal Vacuum'),
+       ('Instant Pot Duo 7-in-1');
+
+-- Создание таблицы Invoices
+CREATE TABLE Invoices
+(
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    product_id INT,
+    rest       INT,
+    paid       INT,
+    cancelled  INT,
+    refunded   INT
+);
+
+INSERT INTO Invoices (id, product_id, rest, paid, cancelled, refunded)
+VALUES (1, 13, 211, 130, 16, 692),
+       (2, 6, 428, 284, 138, 839),
+       (3, 4, 973, 273, 449, 427),
+       (4, 19, 690, 619, 26, 274),
+       (5, 4, 730, 192, 771, 278),
+       (6, 9, 176, 553, 235, 520),
+       (7, 3, 520, 265, 764, 28),
+       (8, 1, 116, 486, 85, 966),
+       (9, 9, 103, 225, 819, 418),
+       (10, 15, 457, 180, 532, 119),
+       (11, 1, 147, 616, 638, 345),
+       (12, 9, 121, 274, 7, 212),
+       (13, 6, 306, 690, 532, 591),
+       (14, 11, 468, 794, 565, 446),
+       (15, 10, 361, 321, 525, 660),
+       (16, 17, 95, 944, 435, 346),
+       (17, 12, 742, 989, 719, 630),
+       (18, 16, 749, 411, 810, 818),
+       (19, 13, 949, 893, 619, 414),
+       (20, 12, 826, 351, 275, 325),
+       (21, 20, 734, 743, 515, 346),
+       (22, 3, 402, 679, 190, 914),
+       (23, 20, 668, 441, 204, 696),
+       (24, 7, 347, 830, 107, 48),
+       (25, 17, 849, 822, 565, 360),
+       (26, 10, 210, 608, 412, 235),
+       (27, 15, 529, 405, 441, 990),
+       (28, 14, 99, 512, 265, 790),
+       (29, 5, 928, 957, 0, 131),
+       (30, 12, 712, 802, 873, 962);
+
+SELECT 
+    name product, 
+    IFNULL(SUM(rest), 0) rest, 
+    IFNULL(SUM(paid), 0) paid, 
+    IFNULL(SUM(cancelled), 0) cancelled, 
+    IFNULL(SUM(refunded), 0) refunded
+FROM Products LEFT JOIN Invoices
+ON Products.id = product_id
+GROUP BY product
+ORDER BY product;
+
+--5
+DROP TABLE IF EXISTS Confirmations;
+CREATE TABLE Confirmations
+(
+    user_id    INT,
+    time_stamp DATETIME,
+    action     VARCHAR(10)
+);
+
+TRUNCATE Confirmations;
+INSERT INTO Confirmations (user_id, time_stamp, action)
+VALUES (1, '2023-09-25 08:50:39', 'timeout'),
+       (1, '2023-09-26 09:02:20', 'timeout'),
+       (1, '2023-09-25 09:20:11', 'confirmed'),
+       (2, '2023-08-03 11:04:16', 'confirmed'),
+       (3, '2023-09-16 12:00:11', 'timeout'),
+       (3, '2023-09-17 12:00:11', 'timeout'),
+       (4, '2023-08-05 14:02:39', 'confirmed'),
+       (4, '2023-09-25 15:00:20', 'timeout'),
+       (5, '2023-05-25 16:00:11', 'timeout'),
+       (5, '2023-07-25 17:02:00', 'confirmed'),
+       (6, '2023-07-05 18:00:39', 'confirmed'),
+       (6, '2023-09-25 19:50:20', 'timeout'),
+       (6, '2023-07-05 18:00:16', 'confirmed'),
+       (7, '2023-05-25 20:04:00', 'timeout'),
+       (7, '2023-04-05 21:02:39', 'timeout'),
+       (7, '2023-04-05 21:00:20', 'timeout'),
+       (8, '2023-03-25 22:00:11', 'timeout'),
+       (8, '2023-10-25 23:04:00', 'confirmed'),
+       (8, '2023-03-25 22:50:20', 'timeout'),
+       (9, '2023-09-06 00:00:39', 'confirmed'),
+       (9, '2023-09-06 00:02:20', 'confirmed'),
+       (9, '2023-09-06 00:00:11', 'confirmed'),
+       (10, '2023-07-26 02:04:39', 'confirmed'),
+       (10, '2023-07-26 02:04:40', 'confirmed'),
+       (11, '2023-09-06 03:00:20', 'timeout'),
+       (12, '2023-09-16 03:00:20', 'timeout'),
+       (12, '2023-09-17 03:00:21', 'timeout');
+
+SELECT DISTINCT C1.user_id 
+FROM Confirmations C1 JOIN Confirmations C2 
+ON C1.user_id = C2.user_id AND 
+ABS(TIMESTAMPDIFF(SECOND, C1.time_stamp, C2.time_stamp)) BETWEEN 1 AND 60 * 60 * 24;
+
+--6
+DROP TABLE IF EXISTS Weather;
+DROP TABLE IF EXISTS Countries;
+
+-- Создание таблицы Countries
+CREATE TABLE Countries
+(
+    id   INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(20)
+);
+
+INSERT INTO Countries (name)
+VALUES ('Russia'),
+       ('Kazakhstan'),
+       ('China'),
+       ('Ukraine'),
+       ('Belarus');
+
+-- Создание таблицы Weather
+CREATE TABLE Weather
+(
+    country_id    INT,
+    weather_state INT,
+    day           DATE
+);
+
+TRUNCATE Weather;
+INSERT INTO Weather (country_id, weather_state, day)
+VALUES (4, -20, '2023-01-12'),
+       (1, 13, '2023-03-19'),
+       (3, -7, '2022-10-22'),
+       (1, -7, '2022-11-14'),
+       (5, 30, '2023-01-06'),
+       (5, 12, '2023-04-27'),
+       (5, 6, '2022-11-20'),
+       (3, 20, '2023-09-30'),
+       (2, 22, '2023-07-06'),
+       (1, 13, '2023-06-01'),
+       (3, 30, '2023-09-17'),
+       (4, 23, '2023-09-09'),
+       (5, 7, '2023-03-01'),
+       (2, 32, '2023-08-25'),
+       (3, 23, '2022-09-27'),
+       (2, -29, '2023-01-05'),
+       (3, 17, '2023-03-15'),
+       (1, 1, '2023-07-20'),
+       (1, 0, '2022-10-08'),
+       (4, 15, '2023-09-27'),
+       (3, 15, '2023-07-07'),
+       (1, -12, '2022-11-12'),
+       (2, -5, '2023-04-08'),
+       (2, 15, '2023-09-18'),
+       (5, 13, '2022-09-28'),
+       (3, 8, '2023-03-01'),
+       (4, -10, '2023-03-12'),
+       (5, 20, '2023-09-01'),
+       (5, 25, '2023-09-04'),
+       (3, 10, '2023-08-28');
+
+SELECT name country,
+    CASE 
+        WHEN AVG(weather_state) <= 15 THEN 'Cold'
+        WHEN AVG(weather_state) >= 25 THEN 'Hot'
+        ELSE 'Warm'
+    END AS weather_type
+FROM Countries JOIN Weather 
+ON Countries.id = country_id AND (MONTH(day), YEAR(day)) = (9, 2023)
+GROUP BY country;
+
+--7
+DROP TABLE IF EXISTS SchoolC;
+DROP TABLE IF EXISTS SchoolB;
+DROP TABLE IF EXISTS SchoolA;
+
+-- Создание таблицы SchoolA
+CREATE TABLE SchoolA
+(
+    student_id   INT,
+    student_name VARCHAR(20)
+);
+
+INSERT INTO SchoolA (student_id, student_name)
+VALUES (1, 'Anita'),
+       (2, 'Blake'),
+       (3, 'Jose'),
+       (4, 'Jennifer'),
+       (5, 'Alexis');
+
+-- Создание таблицы SchoolB
+CREATE TABLE SchoolB
+(
+    student_id   INT,
+    student_name VARCHAR(20)
+);
+
+INSERT INTO SchoolB (student_id, student_name)
+VALUES (6, 'James'),
+       (7, 'Rebecca');
+
+-- Создание таблицы SchoolC
+CREATE TABLE SchoolC
+(
+    student_id   INT,
+    student_name VARCHAR(20)
+);
+
+INSERT INTO SchoolC (student_id, student_name)
+VALUES (9, 'Anita'),
+       (3, 'Jose'),
+       (2, 'Katherine'),
+       (4, 'Christine');
+
+WITH ab AS (
+    SELECT 
+        a.student_name student_A, 
+        b.student_name student_B, 
+        b.student_id b_id, 
+        a.student_id a_id 
+    FROM SchoolA a, SchoolB b 
+    WHERE a.student_id != b.student_id AND 
+        a.student_name != b.student_name
+)
+SELECT 
+    student_A,  
+    student_B, 
+    student_name student_C
+FROM ab, SchoolC
+WHERE a_id != student_id AND 
+    b_id != student_id AND 
+    student_A != student_name 
+    AND student_B != student_name;
+
+--8
+DROP TABLE IF EXISTS Students;
+DROP TABLE IF EXISTS Departments;
+
+-- Создание таблицы Departments
+CREATE TABLE Departments
+(
+    id   INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255)
+);
+
+INSERT INTO Departments (name)
+VALUES ('Computer Science'),
+       ('Medicine'),
+       ('Trademark and Licensing'),
+       ('Art History and Archaeology'),
+       ('Italian');
+
+-- Создание таблицы Students
+CREATE TABLE Students
+(
+    id      INT PRIMARY KEY AUTO_INCREMENT,
+    name    VARCHAR(50),
+    dept_id INT,
+    FOREIGN KEY (dept_id) REFERENCES Departments(id)
+);
+
+TRUNCATE Students;
+INSERT INTO Students (name, dept_id)
+VALUES ('Alice', 3),
+       ('Bob', 1),
+       ('Carol', 2),
+       ('David', 2),
+       ('Emma', 1),
+       ('Frank', 3),
+       ('Grace', 4),
+       ('Helen', 4),
+       ('Ivan', 2),
+       ('Jack', 3),
+       ('Kate', 3),
+       ('Liam', 4),
+       ('Mary', 2),
+       ('Nathan', 1),
+       ('Olivia', 1),
+       ('Peter', 4),
+       ('Quinn', 2),
+       ('Rose', 1),
+       ('Samuel', 2),
+       ('Thomas', 3);
+
+SELECT Departments.name department, COUNT(dept_id) students_count
+FROM Departments LEFT JOIN Students ON dept_id = Departments.id
+GROUP BY department
+ORDER BY 2 DESC, 1;
+
+--9
+DROP TABLE IF EXISTS Votes;
+DROP TABLE IF EXISTS Candidates;
+
+-- Создание таблицы Candidates
+CREATE TABLE Candidates
+(
+    id      INT PRIMARY KEY AUTO_INCREMENT,
+    name    VARCHAR(50),
+    surname VARCHAR(50)
+);
+
+INSERT INTO Candidates (name, surname)
+VALUES ('Barry', 'Wheeler'),
+       ('Sarah', 'Breaker'),
+       ('Cynthia', 'Weaver'),
+       ('Thomas', 'Zane'),
+       ('Robert', 'Nightingale'),
+       ('Emill', 'Hartman');
+
+-- Создание таблицы Votes
+CREATE TABLE Votes
+(
+    id           INT PRIMARY KEY AUTO_INCREMENT,
+    candidate_id INT,
+    FOREIGN KEY (candidate_id) REFERENCES Candidates(id)
+);
+
+TRUNCATE Votes;
+INSERT INTO Votes (candidate_id)
+VALUES (2),
+       (4),
+       (3),
+       (2),
+       (5),
+       (1),
+       (2),
+       (4),
+       (5),
+       (2),
+       (3),
+       (5),
+       (1),
+       (4),
+       (3),
+       (2),
+       (5),
+       (1),
+       (4),
+       (3),
+       (2),
+       (4),
+       (3),
+       (2),
+       (5),
+       (1),
+       (2),
+       (4),
+       (5),
+       (2),
+       (3),
+       (5),
+       (1),
+       (4),
+       (3),
+       (2),
+       (5),
+       (1),
+       (4),
+       (3);
+
+SELECT name, surname, COUNT(*) votes_count 
+FROM Candidates JOIN Votes ON candidate_id = Candidates.id
+GROUP BY name, surname
+ORDER BY 3 DESC 
+LIMIT 1;
+
+--10
+DROP TABLE IF EXISTS Ads;
+DROP TABLE IF EXISTS Playback;
+
+-- Создание таблицы Playback
+CREATE TABLE Playback
+(
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    user_id    INT,
+    start_time INT,
+    end_time   INT
+);
+
+INSERT INTO Playback (user_id, start_time, end_time)
+VALUES (4, 179, 369),
+       (3, 52, 477),
+       (1, 5, 258),
+       (3, 490, 535),
+       (7, 197, 269),
+       (8, 104, 110),
+       (2, 158, 438),
+       (1, 345, 559),
+       (10, 152, 670),
+       (6, 132, 539),
+       (6, 580, 626),
+       (1, 580, 686),
+       (4, 380, 424),
+       (9, 29, 302),
+       (6, 700, 900),
+       (3, 570, 647),
+       (4, 500, 670),
+       (8, 121, 602),
+       (4, 680, 687),
+       (4, 719, 780);
+
+-- Создание таблицы Ads
+CREATE TABLE Ads
+(
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    user_id    INT,
+    time_stamp INT
+);
+
+TRUNCATE Ads;
+INSERT INTO Ads (user_id, time_stamp)
+VALUES (8, 121),
+       (1, 479),
+       (8, 1186),
+       (10, 1319),
+       (10, 807),
+       (9, 1427),
+       (7, 670),
+       (5, 396),
+       (6, 926),
+       (1, 241),
+       (8, 1188),
+       (9, 302),
+       (7, 522),
+       (3, 162),
+       (4, 753),
+       (8, 437),
+       (8, 1067),
+       (4, 1122),
+       (6, 804),
+       (10, 966);
+
+SELECT p.id session_id 
+FROM Playback p LEFT JOIN Ads a ON p.user_id = a.user_id
+GROUP BY session_id
+HAVING IFNULL(SUM(a.time_stamp BETWEEN p.start_time AND p.end_time), 0) = 0
+ORDER BY 1;
+
+--11
+DROP TABLE IF EXISTS Submissions;
+CREATE TABLE Submissions
+(
+    sub_id    INT,
+    parent_id INT
+);
+
+TRUNCATE Submissions;
+INSERT INTO Submissions (sub_id, parent_id)
+VALUES (6, NULL),
+       (9, NULL),
+       (15, 9),
+       (14, 5),
+       (2, 8),
+       (8, NULL),
+       (7, 1),
+       (3, 5),
+       (11, 1),
+       (1, NULL),
+       (10, 9),
+       (12, 6),
+       (13, NULL),
+       (4, 6);
+
+SELECT 
+    s1.sub_id post_id,
+    COUNT(*) number_of_comments
+FROM Submissions s1
+LEFT JOIN Submissions s2 ON s1.sub_id = s2.parent_id
+WHERE s1.parent_id IS NULL
+GROUP BY 1;
+
+--12
+DROP TABLE IF EXISTS Sales;
+DROP TABLE IF EXISTS Products;
+
+-- Создание таблицы Products
+CREATE TABLE Products
+(
+    id    INT PRIMARY KEY AUTO_INCREMENT,
+    name  VARCHAR(50),
+    price INT
+);
+
+INSERT INTO Products (name, price)
+VALUES ('Apple iPhone 13 Pro', 779),
+       ('Samsung Galaxy S21', 629),
+       ('Sony WH-1000XM4 Headphones', 105),
+       ('Nike Air Zoom Pegasus 38', 415),
+       ('Adidas Ultraboost 21', 480),
+       ('Lenovo ThinkPad X1 Carbon', 99),
+       ('Dell XPS 13 Laptop', 1475),
+       ('Canon EOS R6 Camera', 1309),
+       ('Bose QuietComfort 35 II', 435),
+       ('Samsung 65-inch QLED TV', 345),
+       ('LG OLED55CXPUA TV', 740),
+       ('Apple AirPods Pro', 439),
+       ('Fitbit Versa 3', 139),
+       ('PlayStation 5', 320),
+       ('Xbox Series X', 144),
+       ('Amazon Echo Dot (4th Gen)', 210),
+       ('GoPro HERO9 Black', 70),
+       ('Samsung Galaxy Tab S7', 389),
+       ('Dyson V11 Animal Vacuum', 132),
+       ('Instant Pot Duo 7-in-1', 283);
+
+-- Создание таблицы Sales
+CREATE TABLE Sales
+(
+    seller_id  INT,
+    product_id INT,
+    buyer_id   INT,
+    sale_date  DATE,
+    quantity   INT
+);
+
+TRUNCATE Sales;
+INSERT INTO Sales (seller_id, product_id, buyer_id, sale_date, quantity)
+VALUES (9, 13, 6, '2023-07-19', 3),
+       (4, 20, 8, '2023-07-13', 5),
+       (6, 8, 2, '2023-06-03', 3),
+       (2, 16, 6, '2023-03-14', 2),
+       (8, 8, 6, '2023-05-23', 9),
+       (1, 14, 3, '2023-01-10', 7),
+       (10, 3, 6, '2023-03-28', 6),
+       (3, 13, 4, '2023-01-17', 3),
+       (1, 10, 4, '2023-01-26', 7),
+       (10, 17, 3, '2023-06-02', 1),
+       (10, 13, 4, '2023-05-13', 4),
+       (8, 19, 2, '2023-02-15', 6),
+       (1, 15, 4, '2023-06-03', 7),
+       (1, 5, 1, '2023-05-21', 3),
+       (1, 13, 9, '2023-04-07', 9),
+       (7, 12, 2, '2023-06-12', 7),
+       (1, 6, 3, '2023-02-01', 2),
+       (5, 11, 4, '2023-03-09', 6),
+       (8, 19, 6, '2023-06-02', 3),
+       (1, 12, 6, '2023-02-06', 2),
+       (7, 9, 10, '2023-05-10', 4),
+       (2, 16, 5, '2023-05-31', 5),
+       (2, 18, 8, '2023-03-09', 4),
+       (10, 12, 2, '2023-02-07', 4),
+       (9, 2, 9, '2023-06-23', 10),
+       (2, 14, 10, '2023-04-29', 2),
+       (4, 11, 8, '2023-07-04', 5),
+       (3, 6, 6, '2023-01-31', 10),
+       (4, 17, 2, '2023-07-16', 6),
+       (10, 13, 4, '2023-07-01', 5),
+       (2, 12, 5, '2023-04-08', 2),
+       (4, 10, 4, '2023-04-05', 3),
+       (8, 18, 1, '2023-05-22', 3),
+       (5, 2, 1, '2023-02-14', 9),
+       (8, 10, 2, '2023-04-08', 10),
+       (8, 18, 10, '2023-02-15', 3),
+       (6, 13, 4, '2023-02-06', 8),
+       (1, 7, 4, '2023-05-08', 3),
+       (4, 9, 3, '2023-07-13', 1),
+       (1, 20, 8, '2023-01-15', 10),
+       (6, 9, 6, '2023-03-09', 2),
+       (6, 8, 4, '2023-05-02', 10),
+       (10, 14, 4, '2023-07-13', 7),
+       (7, 4, 9, '2023-06-29', 9),
+       (1, 6, 3, '2023-01-23', 10),
+       (10, 10, 6, '2023-02-07', 4),
+       (2, 12, 5, '2023-05-10', 8),
+       (3, 1, 4, '2023-04-10', 6),
+       (8, 17, 7, '2023-05-18', 6);
+
+SELECT DISTINCT buyer_id FROM Sales S
+WHERE 
+    'Canon EOS R6 Camera' IN
+    (SELECT name
+    FROM Sales JOIN Products ON product_id = Products.id AND buyer_id = S.buyer_id)
+    AND 'Lenovo ThinkPad X1 Carbon' NOT IN 
+    (SELECT name
+    FROM Sales JOIN Products ON product_id = Products.id AND buyer_id = S.buyer_id);
