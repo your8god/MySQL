@@ -1473,3 +1473,640 @@ WHERE
     AND 'Lenovo ThinkPad X1 Carbon' NOT IN 
     (SELECT name
     FROM Sales JOIN Products ON product_id = Products.id AND buyer_id = S.buyer_id);
+
+
+/*  
+****    7.6    ****
+*/
+
+--1
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Users;
+
+-- Создание таблицы Users
+CREATE TABLE Users
+(
+    id        INT PRIMARY KEY AUTO_INCREMENT,
+    join_date DATE
+);
+
+INSERT INTO Users (join_date)
+VALUES ('2020-01-05'),
+       ('2022-02-12'),
+       ('2023-03-20'),
+       ('2021-04-15'),
+       ('2023-05-18'),
+       ('2023-06-02'),
+       ('2020-07-09'),
+       ('2023-08-11'),
+       ('2022-09-23'),
+       ('2023-10-14'),
+       ('2022-11-07'),
+       ('2023-12-19');
+
+-- Создание таблицы Orders
+CREATE TABLE Orders
+(
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    order_date DATE,
+    item_id    INT,
+    buyer_id   INT,
+    seller_id  INT
+);
+
+TRUNCATE Orders;
+INSERT INTO Orders (order_date, item_id, buyer_id, seller_id)
+VALUES ('2023-02-05', 4, 1, 2),
+       ('2022-03-12', 2, 1, 3),
+       ('2023-04-20', 3, 2, 3),
+       ('2023-05-15', 1, 4, 2),
+       ('2023-06-18', 1, 3, 4),
+       ('2023-07-02', 2, 2, 4),
+       ('2021-08-09', 4, 4, 1),
+       ('2023-09-11', 3, 1, 4),
+       ('2023-10-23', 1, 2, 1),
+       ('2023-11-14', 2, 3, 2),
+       ('2023-12-07', 4, 4, 3),
+       ('2023-01-19', 3, 1, 2),
+       ('2022-02-01', 1, 4, 3),
+       ('2023-03-08', 2, 2, 1),
+       ('2023-04-25', 4, 3, 4),
+       ('2020-05-29', 1, 4, 2),
+       ('2023-06-10', 3, 1, 4),
+       ('2023-07-21', 2, 2, 3),
+       ('2023-08-28', 4, 6, 1),
+       ('2023-09-03', 1, 7, 3),
+       ('2023-04-20', 4, 2, 1),
+       ('2022-04-25', 2, 6, 4),
+       ('2023-04-30', 3, 4, 2),
+       ('2023-05-05', 1, 8, 2),
+       ('2023-05-10', 2, 2, 3),
+       ('2020-05-15', 4, 6, 4),
+       ('2023-05-20', 3, 6, 1),
+       ('2020-05-25', 1, 7, 3),
+       ('2023-05-30', 2, 2, 1),
+       ('2023-06-05', 4, 7, 2),
+       ('2023-06-10', 1, 6, 3),
+       ('2023-06-15', 2, 5, 4),
+       ('2022-06-20', 3, 4, 2),
+       ('2022-06-25', 4, 6, 2),
+       ('2021-06-30', 1, 1, 3),
+       ('2021-07-05', 3, 5, 1),
+       ('2023-07-10', 4, 2, 3),
+       ('2020-07-15', 1, 5, 2),
+       ('2020-07-20', 2, 6, 4);
+
+SELECT Users.id, COUNT(item_id) purchases_in_2023 FROM Users
+LEFT JOIN Orders ON Users.id = buyer_id AND YEAR(order_date) = 2023
+GROUP BY Users.id;
+
+--2
+DROP TABLE IF EXISTS BigBoxes;
+DROP TABLE IF EXISTS SmallBoxes;
+
+-- Создание таблицы SmallBoxes
+CREATE TABLE SmallBoxes
+(
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    apple_count  INT,
+    orange_count INT
+);
+
+INSERT INTO SmallBoxes (apple_count, orange_count)
+VALUES (5, 6),
+       (20, 10),
+       (8, 8),
+       (19, 4),
+       (19, 19),
+       (10, 5),
+       (12, 7),
+       (15, 9),
+       (25, 30),
+       (8, 15),
+       (10, 12),
+       (6, 3),
+       (14, 6),
+       (13, 12),
+       (9, 9),
+       (7, 15),
+       (11, 11),
+       (16, 8),
+       (22, 10),
+       (18, 16);
+
+-- Создание таблицы BigBoxes
+CREATE TABLE BigBoxes
+(
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    small_box_id INT,
+    apple_count  INT,
+    orange_count INT
+);
+
+TRUNCATE BigBoxes;
+INSERT INTO BigBoxes (small_box_id, apple_count, orange_count)
+VALUES (null, 6, 15),
+       (14, 4, 15),
+       (3, 8, 4),
+       (2, 19, 20),
+       (6, 12, 9),
+       (6, 9, 9),
+       (14, 16, 7),
+       (NULL, 7, 15),
+       (12, 8, 8),
+       (20, 9, 6),
+       (8, 10, 12),
+       (NULL, 5, 7),
+       (3, 10, 5),
+       (2, 15, 8),
+       (NULL, 10, 9),
+       (18, 20, 15),
+       (3, 10, 8),
+       (12, 12, 12),
+       (NULL, 8, 7),
+       (20, 7, 6);
+
+SELECT SUM(apl) apple_count, SUM(org) orange_count FROM
+(SELECT SUM(B1.apple_count) apl, SUM(B1.orange_count) org FROM SmallBoxes B1
+    JOIN BigBoxes B2 ON B2.small_box_id = B1.id
+UNION
+SELECT SUM(apple_count), SUM(orange_count) FROM BigBoxes) AS T;
+
+--3
+DROP TABLE IF EXISTS Points;
+CREATE TABLE Points
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    x  INT,
+    y  INT
+);
+
+TRUNCATE Points;
+INSERT INTO Points (x, y)
+VALUES (2, 7),
+       (4, 8),
+       (2, 10),
+       (1, 1),
+       (3, 2),
+       (1, 4),
+       (5, 3),
+       (6, 6),
+       (9, 5);
+
+SELECT P1.id p1, P2.id p2,
+    ABS(P1.x - P2.x) * ABS(P1.y - P2.y) area 
+FROM Points P1, Points P2 WHERE P1.id < P2.id
+HAVING area != 0
+ORDER BY 3 DESC, 1, 2;
+
+--4
+DROP TABLE IF EXISTS Streams;
+DROP TABLE IF EXISTS Subscriptions;
+
+-- Создание таблицы Subscriptions
+CREATE TABLE Subscriptions
+(
+    user_id    INT AUTO_INCREMENT PRIMARY KEY,
+    start_date DATE,
+    end_date   DATE
+);
+
+INSERT INTO Subscriptions (start_date, end_date)
+VALUES ('2022-02-18', '2023-10-30'),
+       ('2023-09-21', '2023-11-13'),
+       ('2021-02-28', '2022-08-18'),
+       ('2023-04-20', '2023-09-22'),
+       ('2020-10-26', '2021-05-08'),
+       ('2023-09-11', '2024-01-17'),
+       ('2023-03-05', '2024-03-30'),
+       ('2022-08-10', '2023-02-15'),
+       ('2023-05-15', '2024-05-30'),
+       ('2021-01-10', '2022-07-15'),
+       ('2022-06-14', '2023-12-31'),
+       ('2023-07-20', '2024-01-05'),
+       ('2022-03-21', '2024-03-31'),
+       ('2023-01-28', '2023-07-28'),
+       ('2023-06-02', '2023-12-02'),
+       ('2023-08-08', '2024-02-08'),
+       ('2022-04-25', '2022-10-25'),
+       ('2023-02-10', '2023-08-10'),
+       ('2021-05-28', '2023-11-28'),
+       ('2020-01-15', '2023-07-15');
+
+-- Создание таблицы Streams
+CREATE TABLE Streams
+(
+    session_id  INT AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT,
+    stream_date DATE
+);
+
+TRUNCATE Streams;
+INSERT INTO Streams (user_id, stream_date)
+VALUES (9, '2023-05-16'),
+       (3, '2023-10-27'),
+       (7, '2022-04-29'),
+       (13, '2022-08-08'),
+       (4, '2023-12-31'),
+       (5, '2023-01-05'),
+       (6, '2023-02-15'),
+       (7, '2022-03-30'),
+       (8, '2022-05-25'),
+       (9, '2022-07-10'),
+       (10, '2023-08-15'),
+       (10, '2023-09-20'),
+       (12, '2023-10-25'),
+       (13, '2022-11-30'),
+       (14, '2023-01-05'),
+       (18, '2023-02-10'),
+       (14, '2023-03-15'),
+       (17, '2022-04-20'),
+       (14, '2023-05-25'),
+       (19, '2023-06-30');
+
+SELECT COUNT(DISTINCT S.user_id) as users_count FROM Subscriptions S
+LEFT JOIN Streams st ON st.user_id = S.user_id
+WHERE YEAR(S.start_date) <= 2023 AND YEAR(S.end_date) >= 2023
+    AND 2023 NOT IN (
+        SELECT YEAR(stream_date) FROM Streams WHERE user_id = st.user_id    
+    )
+
+--5
+DROP TABLE IF EXISTS Orders;
+CREATE TABLE Orders
+(
+    id          INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id INT,
+    order_date  DATE
+);
+
+TRUNCATE Orders;
+INSERT INTO Orders (customer_id, order_date)
+VALUES (1, '2023-09-05'),
+       (2, '2023-08-11'),
+       (8, '2023-07-09'),
+       (10, '2023-07-18'),
+       (10, '2023-07-14'),
+       (8, '2023-07-27'),
+       (8, '2023-07-21'),
+       (4, '2023-07-08'),
+       (8, '2023-07-18'),
+       (10, '2023-07-09'),
+       (4, '2023-07-19'),
+       (1, '2023-09-17'),
+       (9, '2023-09-17'),
+       (2, '2023-07-31'),
+       (9, '2023-09-18'),
+       (3, '2023-09-02'),
+       (2, '2023-07-31'),
+       (5, '2023-08-22'),
+       (1, '2023-08-24'),
+       (3, '2023-09-02'),
+       (6, '2023-10-12'),
+       (4, '2023-08-05'),
+       (5, '2023-09-22'),
+       (10, '2023-08-09'),
+       (1, '2023-08-18'),
+       (9, '2023-09-10'),
+       (9, '2023-08-27'),
+       (8, '2023-07-17'),
+       (1, '2023-08-16'),
+       (8, '2023-08-06'),
+       (1, '2023-08-29'),
+       (9, '2023-09-24'),
+       (4, '2023-07-12'),
+       (7, '2023-09-18'),
+       (9, '2023-08-14'),
+       (8, '2023-07-20'),
+       (5, '2023-08-16'),
+       (6, '2023-11-07'),
+       (2, '2023-07-24'),
+       (4, '2023-07-17'),
+       (8, '2023-08-12'),
+       (5, '2023-08-14');
+
+SELECT DISTINCT O1.customer_id
+FROM Orders O1 CROSS JOIN Orders O2 
+ON O1.customer_id = O2.customer_id AND O1.id < O2.id
+WHERE ABS(DATEDIFF(O1.order_date, O2.order_date)) <= 7
+ORDER BY 1;
+
+--6
+DROP TABLE IF EXISTS Rides;
+CREATE TABLE Rides
+(
+    id           INT PRIMARY KEY AUTO_INCREMENT,
+    driver_id    INT,
+    passenger_id INT
+);
+
+TRUNCATE Rides;
+INSERT INTO Rides (id, driver_id, passenger_id)
+VALUES (1, 16, 19),
+       (2, 11, 22),
+       (3, 11, 22),
+       (4, 7, 1),
+       (5, 15, 9),
+       (6, 4, 15),
+       (7, 10, 17),
+       (8, 11, 22),
+       (9, 23, 19),
+       (10, 6, 27),
+       (11, 16, 15),
+       (12, 18, 25),
+       (13, 18, 23),
+       (14, 3, 7),
+       (15, 12, 23),
+       (16, 22, 12),
+       (17, 6, 23),
+       (18, 30, 22),
+       (19, 3, 10),
+       (20, 1, 27),
+       (21, 21, 9),
+       (22, 9, 8),
+       (23, 13, 17),
+       (24, 19, 29),
+       (25, 20, 3),
+       (26, 28, 14),
+       (27, 9, 10),
+       (28, 23, 19),
+       (29, 10, 13),
+       (30, 1, 27);
+
+SELECT D1.driver_id, COUNT(DISTINCT D2.id) count FROM Rides D1
+LEFT JOIN Rides D2 ON D1.driver_id = D2.passenger_id
+GROUP BY 1
+ORDER BY D1.driver_id;
+
+--7
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Customers;
+DROP TABLE IF EXISTS Salespersons;
+
+-- Создание таблицы Salespersons
+CREATE TABLE Salespersons
+(
+    id   INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(20)
+);
+
+INSERT INTO Salespersons (name)
+VALUES ('Stephanie'),
+       ('Rebecca'),
+       ('Deborah'),
+       ('Jordan'),
+       ('Veronica'),
+       ('Marisa'),
+       ('Deanna'),
+       ('Emma'),
+       ('Julie'),
+       ('Maria');
+
+-- Создание таблицы Customers
+CREATE TABLE Customers
+(
+    id             INT PRIMARY KEY AUTO_INCREMENT,
+    salesperson_id INT
+);
+
+INSERT INTO Customers (salesperson_id)
+VALUES (5),
+       (4),
+       (8),
+       (10),
+       (3),
+       (1),
+       (6),
+       (2),
+       (1),
+       (4),
+       (4),
+       (5),
+       (8),
+       (8),
+       (10),
+       (5),
+       (3),
+       (1),
+       (6),
+       (3);
+
+-- Создание таблицы Orders
+CREATE TABLE Orders
+(
+    id          INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id INT,
+    price       INT
+);
+
+TRUNCATE Orders;
+INSERT INTO Orders (customer_id, price)
+VALUES (8, 2480),
+       (6, 654),
+       (13, 2938),
+       (4, 2071),
+       (4, 2412),
+       (1, 236),
+       (17, 2514),
+       (18, 849),
+       (7, 925),
+       (10, 93),
+       (14, 449),
+       (15, 923),
+       (14, 160),
+       (1, 1978),
+       (14, 2903),
+       (13, 2093),
+       (14, 2429),
+       (12, 1058),
+       (18, 2342),
+       (19, 484),
+       (4, 1040),
+       (14, 2346),
+       (19, 239),
+       (14, 2253),
+       (20, 510),
+       (12, 497),
+       (6, 1638),
+       (9, 1088),
+       (6, 1766),
+       (2, 1548);
+
+SELECT SC.s_id id, IFNULL(SUM(price), 0) total FROM (
+    SELECT S.id s_id, C.id c_id FROM Salespersons S 
+    LEFT JOIN Customers C ON C.salesperson_id = S.id
+    ) AS SC
+LEFT JOIN Orders O ON SC.c_id = O.customer_id
+GROUP BY 1;
+
+SELECT S.id, IFNULL(SUM(price), 0) total FROM 
+Salespersons S LEFT JOIN Customers C ON C.salesperson_id = S.id
+              LEFT JOIN Orders ON customer_id = C.id
+GROUP BY 1;      
+
+--8
+DROP TABLE IF EXISTS Purchases;
+DROP TABLE IF EXISTS Visits;
+DROP TABLE IF EXISTS Members;
+
+-- Создание таблицы Members
+CREATE TABLE Members
+(
+    id   INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50)
+);
+
+INSERT INTO Members (name)
+VALUES ('John'),
+       ('Sarah'),
+       ('Michael'),
+       ('Emily'),
+       ('David'),
+       ('Sophia'),
+       ('Liam'),
+       ('Olivia'),
+       ('Daniel'),
+       ('Ava'),
+       ('Ethan'),
+       ('Mia');
+
+-- Создание таблицы Visits
+CREATE TABLE Visits
+(
+    id         INT PRIMARY KEY,
+    member_id  INT,
+    visit_date DATE
+);
+
+INSERT INTO Visits (id, member_id, visit_date)
+VALUES (101, 2, '2023-10-28'),
+       (102, 4, '2022-01-12'),
+       (103, 1, '2023-12-10'),
+       (104, 5, '2022-10-19'),
+       (105, 6, '2021-03-01'),
+       (106, 9, '2023-05-07'),
+       (107, 11, '2023-05-12'),
+       (108, 3, '2023-06-18'),
+       (109, 7, '2023-09-30'),
+       (110, 12, '2023-08-15'),
+       (111, 5, '2023-10-25'),
+       (112, 5, '2022-02-11'),
+       (113, 1, '2023-12-01'),
+       (114, 6, '2022-09-09'),
+       (115, 6, '2021-05-01'),
+       (116, 6, '2023-03-07'),
+       (117, 11, '2023-07-19'),
+       (118, 12, '2022-04-18'),
+       (119, 11, '2021-08-30'),
+       (120, 6, '2023-08-05');
+
+-- Создание таблицы Purchases
+CREATE TABLE Purchases
+(
+    visit_id       INT,
+    charged_amount INT
+);
+
+TRUNCATE Purchases;
+INSERT INTO Purchases (visit_id, charged_amount)
+VALUES (102, 2000),
+       (103, 9000),
+       (106, 7000),
+       (108, 500),
+       (105, 1500),
+       (101, 200),
+       (109, 3000),
+       (119, 400),
+       (110, 7000),
+       (120, 5000),
+       (116, 12000),
+       (111, 7000),
+       (115, 350),
+       (118, 10500),
+       (117, 100);
+
+SELECT M.id, M.name, 
+    CASE 
+        WHEN (100 * COUNT(charged_amount)) / COUNT(*) >= 80 THEN 'Diamond'
+        WHEN (100 * COUNT(charged_amount)) / COUNT(*) = 0 AND COUNT(V.visit_date) = 0 THEN 'Bronze'
+        WHEN (100 * COUNT(charged_amount)) / COUNT(*) < 50 THEN 'Silver'
+        ELSE 'Gold'
+    END AS status
+FROM Members M LEFT JOIN Visits V ON V.member_id = M.id
+            LEFT JOIN Purchases P ON P.visit_id = V.id
+GROUP BY M.id, M.name; 
+
+--9
+DROP TABLE IF EXISTS Trips;
+DROP TABLE IF EXISTS Users;
+
+-- Создание таблицы Users
+CREATE TABLE Users
+(
+    id       INT AUTO_INCREMENT PRIMARY KEY,
+    banned   VARCHAR(50),
+    role     ENUM ('client', 'driver')
+);
+
+INSERT INTO Users(banned, role)
+VALUES ('yes', 'client'),
+       ('yes', 'client'),
+       ('no', 'client'),
+       ('no', 'client'),
+       ('no', 'client'),
+       ('no', 'driver'),
+       ('no', 'driver'),
+       ('no', 'driver'),
+       ('no', 'driver'),
+       ('yes', 'driver'),
+       ('no', 'driver');
+
+-- Создание таблицы Trips
+CREATE TABLE Trips
+(
+    id         INT PRIMARY KEY AUTO_INCREMENT,
+    client_id  INT,
+    driver_id  INT,
+    status     ENUM ('completed', 'cancelled_by_driver', 'cancelled_by_client'),
+    request_at VARCHAR(50)
+);
+
+TRUNCATE Trips;
+INSERT INTO Trips(client_id, driver_id, status, request_at)
+VALUES (3, 6, 'completed', '2023-10-01'),
+       (4, 8, 'completed', '2023-10-01'),
+       (2, 9, 'completed', '2023-10-01'),
+       (1, 8, 'cancelled_by_client', '2023-10-01'),
+       (5, 11, 'completed', '2023-10-02'),
+       (5, 11, 'cancelled_by_driver', '2023-10-02'),
+       (2, 10, 'completed', '2023-10-02'),
+       (2, 8, 'completed', '2023-10-02'),
+       (3, 11, 'completed', '2023-10-02'),
+       (3, 7, 'cancelled_by_driver', '2023-10-03'),
+       (2, 6, 'cancelled_by_driver', '2023-10-03'),
+       (4, 8, 'completed', '2023-10-03'),
+       (2, 11, 'completed', '2023-10-03'),
+       (3, 10, 'completed', '2023-10-04'),
+       (1, 10, 'completed', '2023-10-05'),
+       (4, 8, 'completed', '2023-10-05'),
+       (2, 8, 'cancelled_by_driver', '2023-10-05'),
+       (5, 9, 'completed', '2023-10-05'),
+       (2, 6, 'completed', '2023-10-05'),
+       (5, 8, 'completed', '2023-10-06'),
+       (3, 9, 'completed', '2023-10-06'),
+       (2, 10, 'completed', '2023-10-07'),
+       (2, 6, 'completed', '2023-10-07'),
+       (3, 6, 'completed', '2023-10-08'),
+       (3, 7, 'completed', '2023-10-08'),
+       (5, 8, 'completed', '2023-10-09'),
+       (2, 8, 'completed', '2023-10-09'),
+       (2, 11, 'completed', '2023-10-09'),
+       (4, 10, 'completed', '2023-10-09'),
+       (3, 11, 'completed', '2023-10-10');
+
+SELECT request_at day, 
+    ROUND(SUM(status LIKE 'can%') / COUNT(*), 2) cancellation_rate FROM Trips
+JOIN Users U ON U.id = client_id AND U.banned = 'NO'
+JOIN Users UU ON UU.id = driver_id AND UU.banned = 'NO'
+GROUP BY 1
+HAVING day BETWEEN '2023-10-01' AND '2023-10-03';
