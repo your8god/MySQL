@@ -3967,6 +3967,306 @@ WHERE name IS NULL
 ORDER BY 1;
 
 --7
+DROP TABLE IF EXISTS Likes;
+DROP TABLE IF EXISTS Friendship;
+
+-- Создание таблицы Friendship
+CREATE TABLE Friendship
+(
+    user1_id INT,
+    user2_id INT
+);
+
+INSERT INTO Friendship (user1_id, user2_id)
+VALUES (1, 2),
+       (1, 3),
+       (1, 4),
+       (2, 3),
+       (2, 4),
+       (2, 5),
+       (6, 1),
+       (3, 6),
+       (4, 6),
+       (5, 6),
+       (7, 1),
+       (8, 1),
+       (9, 2),
+       (10, 3),
+       (11, 4),
+       (12, 5),
+       (13, 6),
+       (14, 7),
+       (15, 8),
+       (16, 9);
+
+-- Создание таблицы Likes
+CREATE TABLE Likes
+(
+    user_id INT,
+    page_id INT
+);
+
+TRUNCATE Likes;
+INSERT INTO Likes (user_id, page_id)
+VALUES (1, 88),
+       (2, 23),
+       (3, 24),
+       (4, 56),
+       (5, 11),
+       (2, 88),
+       (4, 88),
+       (6, 33),
+       (3, 88),
+       (4, 23),
+       (4, 85),
+       (2, 77),
+       (3, 23),
+       (3, 77),
+       (1, 85),
+       (6, 88),
+       (7, 23),
+       (8, 24),
+       (2, 77),
+       (9, 56),
+       (10, 11),
+       (11, 33),
+       (12, 77),
+       (13, 88),
+       (14, 23),
+       (15, 24),
+       (16, 56);
+
+SELECT DISTINCT page_id recommended_page
+FROM Likes JOIN Friendship f1 ON user_id = f1.user1_id
+JOIN Friendship f2 ON user_id = f2.user2_id
+WHERE (f2.user1_id = 1 OR f1.user2_id = 1) AND page_id NOT IN 
+    (SELECT page_id FROM Likes WHERE user_id = 1
+    );
+
 --8
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Customers;
+
+-- Создание таблицы Customers
+CREATE TABLE Customers
+(
+    id      INT PRIMARY KEY AUTO_INCREMENT,
+    name    VARCHAR(50),
+    surname VARCHAR(50)
+);
+
+INSERT INTO Customers (name, surname)
+VALUES ('Lech', 'Walesa'),
+       ('Julie', 'Andrews'),
+       ('Florence', 'Nightingale'),
+       ('Marie', 'Curie'),
+       ('Stephen', 'Hawking'),
+       ('Tim', 'Berners'),
+       ('Aung', 'San'),
+       ('Lance', 'Armstrong'),
+       ('Shakira', 'Curie'),
+       ('Jon', 'Stewart'),
+       ('Wright', 'BrothersOrville'),
+       ('Ernest', 'Hemingway'),
+       ('Roman', 'Abramovich'),
+       ('Tom', 'Cruise'),
+       ('Rupert', 'Murdoch'),
+       ('Al', 'Gore'),
+       ('Sacha', 'Baron'),
+       ('George', 'Clooney'),
+       ('Paul', 'Krugman'),
+       ('Jimmy', 'Wales');
+
+-- Создание таблицы Orders
+CREATE TABLE Orders
+(
+    id           INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id  INT,
+    product_code ENUM('A', 'B', 'C', 'D'),
+    FOREIGN KEY (customer_id) 
+    REFERENCES Customers(id)
+);
+
+TRUNCATE Orders;
+INSERT INTO Orders (customer_id, product_code)
+VALUES (16, 'A'),
+       (20, 'B'),
+       (7, 'A'),
+       (15, 'C'),
+       (16, 'B'),
+       (1, 'B'),
+       (3, 'C'),
+       (12, 'A'),
+       (15, 'B'),
+       (18, 'A'),
+       (14, 'A'),
+       (18, 'A'),
+       (7, 'B'),
+       (20, 'D'),
+       (19, 'A'),
+       (15, 'D'),
+       (19, 'B'),
+       (14, 'C'),
+       (20, 'A'),
+       (15, 'A');
+
+SELECT DISTINCT c.id, name, surname 
+FROM Customers c JOIN Orders ON c.id = customer_id
+WHERE 'A' IN (SELECT product_code FROM Orders WHERE customer_id = c.id)
+    AND 'B' IN (SELECT product_code FROM Orders WHERE customer_id = c.id) 
+    AND 'C' NOT IN (SELECT product_code FROM Orders WHERE customer_id = c.id);
+
+SELECT DISTINCT c.id, name, surname 
+FROM Customers c JOIN Orders ON c.id = customer_id
+GROUP BY 1
+HAVING GROUP_CONCAT(product_code ORDER BY product_code) NOT LIKE '%C%' AND
+    GROUP_CONCAT(product_code ORDER BY product_code) LIKE 'A,B%';
+
 --9
+DROP TABLE IF EXISTS Championships;
+DROP TABLE IF EXISTS Teams;
+
+-- Создание таблицы Teams
+CREATE TABLE Teams
+(
+    id        INT PRIMARY KEY AUTO_INCREMENT,
+    team_name VARCHAR(30)
+);
+
+INSERT INTO Teams (id, team_name)
+VALUES (10, 'Manchester United'),
+       (20, 'Liverpool FC'),
+       (30, 'Chelsea FC'),
+       (40, 'Arsenal FC'),
+       (50, 'Manchester City'),
+       (60, 'Tottenham Hotspur'),
+       (70, 'Everton FC'),
+       (80, 'Leicester City'),
+       (90, 'West Ham United'),
+       (100, 'Aston Villa FC');
+
+-- Создание таблицы Championships
+CREATE TABLE Championships
+(
+    year                         YEAR,
+    `FIFA World Cup`             INT,
+    `UEFA European Championship` INT,
+    `Copa America`               INT,
+    `African Cup of Nations`     INT
+);
+
+TRUNCATE Championships;
+INSERT INTO Championships (year, `FIFA World Cup`, `UEFA European Championship`, `Copa America`, `African Cup of Nations`)
+VALUES (1999, 70, 70, 80, 60),
+       (2000, 10, 10, 60, 100),
+       (2001, 50, 90, 40, 20),
+       (2002, 70, 10, 30, 90),
+       (2003, 60, 90, 10, 100),
+       (2004, 100, 20, 20, 90),
+       (2005, 90, 50, 60, 40),
+       (2006, 70, 60, 20, 60),
+       (2007, 40, 80, 50, 50),
+       (2008, 10, 70, 70, 10),
+       (2009, 40, 60, 50, 80),
+       (2010, 30, 60, 50, 20),
+       (2011, 100, 60, 40, 90),
+       (2012, 80, 90, 80, 70),
+       (2013, 30, 30, 40, 50),
+       (2014, 90, 50, 90, 60),
+       (2015, 80, 60, 30, 20),
+       (2016, 40, 10, 70, 20),
+       (2017, 70, 20, 30, 20),
+       (2018, 20, 70, 90, 50),
+       (2019, 50, 10, 20, 50),
+       (2020, 80, 10, 90, 100),
+       (2021, 100, 80, 60, 70),
+       (2022, 40, 30, 100, 40),
+       (2023, 30, 40, 70, 40);
+
+SELECT team_name, COUNT(*) tournaments_won 
+FROM Teams JOIN (
+    SELECT `FIFA World Cup` FROM Championships
+    UNION ALL
+    SELECT `UEFA European Championship` FROM Championships
+    UNION ALL
+    SELECT `Copa America` FROM Championships
+    UNION ALL
+    SELECT `African Cup of Nations ` FROM Championships
+) AS T(id) USING(id)
+GROUP BY 1; 
+
+SELECT team_name,
+       (SUM(id = `FIFA World Cup`)) +
+       (SUM(id = `UEFA European Championship`)) +
+       (SUM(id = `Copa America`)) +
+       (SUM(id = `African Cup of Nations`)) AS tournaments_won
+FROM Teams T JOIN Championships C ON T.id IN (`FIFA World Cup`, `UEFA European Championship`, `Copa America`, `African Cup of Nations`)
+GROUP BY team_name
+
 --10
+DROP TABLE IF EXISTS PriceChanges;
+CREATE TABLE PriceChanges
+(
+    product_id  INT,
+    new_price   DECIMAL(10, 2),
+    change_date DATE
+);
+
+TRUNCATE PriceChanges;
+INSERT INTO PriceChanges (product_id, new_price, change_date)
+VALUES (1, 20.00, '2023-08-09'),
+       (2, 25.00, '2023-08-02'),
+       (3, 5.00, '2023-08-09'),
+       (1, 22.00, '2023-08-04'),
+       (4, 10.00, '2023-08-09'),
+       (2, 28.00, '2023-08-06'),
+       (1, 25.00, '2023-08-07'),
+       (3, 18.00, '2023-08-12'),
+       (5, 40.00, '2023-08-05'),
+       (4, 7.00, '2023-08-02'),
+       (2, 30.00, '2023-08-10'),
+       (6, 35.00, '2023-08-16'),
+       (1, 28.00, '2023-08-13'),
+       (3, 20.00, '2023-08-14'),
+       (5, 45.00, '2023-08-02'),
+       (4, 6.00, '2023-08-16'),
+       (2, 32.00, '2023-08-17'),
+       (6, 38.00, '2023-08-28'),
+       (1, 30.00, '2023-08-19'),
+       (3, 47.00, '2023-08-22');
+
+
+WITH NewTable AS
+(
+    SELECT P.product_id, T.cur_date FROM
+    ((
+        SELECT product_id, MAX(change_date) cur_date
+        FROM PriceChanges
+        WHERE change_date <= '2023-08-09'
+        GROUP BY product_id
+    ) AS T RIGHT JOIN 
+    (
+        SELECT DISTINCT product_id FROM PriceChanges
+    ) AS P USING(product_id)
+    )
+)
+SELECT product_id, new_price current_price FROM PriceChanges
+WHERE change_date = (SELECT cur_date FROM NewTable WHERE product_id = PriceChanges.product_id)
+UNION
+SELECT product_id, 10.00 FROM NewTable
+WHERE cur_date IS NULL;
+
+
+WITH NewTable AS
+(
+    SELECT p1.product_id, MAX(p2.change_date) cur_date
+        FROM PriceChanges p1 LEFT JOIN PriceChanges p2 
+        ON p1.product_id = p2.product_id AND
+            p2.change_date <= '2023-08-09'
+        GROUP BY p1.product_id
+)
+SELECT product_id, new_price current_price FROM PriceChanges
+WHERE change_date = (SELECT cur_date FROM NewTable WHERE product_id = PriceChanges.product_id)
+UNION
+SELECT product_id, 10.00 FROM NewTable
+WHERE cur_date IS NULL;
