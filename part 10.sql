@@ -327,3 +327,104 @@ ORDER BY 2 DESC ;
 /*  
 ****    11.4    ****
 */
+
+DROP TABLE IF EXISTS Sales;
+CREATE TABLE Sales
+(
+    month INT,
+    quantity INT
+);
+
+INSERT INTO Sales (month, quantity)
+VALUES (1, 180000),
+       (2, 210000),
+       (3, 195000),
+       (4, 245000),
+       (5, 200000),
+       (6, 230000),
+       (7, 275000),
+       (8, 215000),
+       (9, 250000),
+       (10, 265000),
+       (11, 220000),
+       (12, 290000);
+
+--1
+SELECT month,
+    AVG(quantity) OVER (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) avg_quantity
+FROM Sales;
+
+--2
+SELECT Sales.*,
+    COALESCE(
+        SUM(quantity) OVER (ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING), 0
+    ) prev_month_quantity
+FROM Sales;   
+
+--3
+SELECT Sales.*,
+    SUM(quantity) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) total_quantity
+FROM Sales; 
+
+--4
+SELECT Sales.*,
+    AVG(quantity) OVER (ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING) two_prev_months_avg_quantity
+FROM Sales
+LIMIT 10
+OFFSET 2;
+
+--5
+WITH helper AS
+(
+    SELECT Sales.*,
+        NTILE(4) OVER () quarter
+    FROM Sales
+)
+SELECT month, quantity,
+    SUM(quantity) OVER (PARTITION BY quarter 
+                         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                         total_quantity_within_quarter
+FROM helper;                         
+
+--6
+CREATE TABLE Orders
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    date DATE,
+    amount INT
+);
+
+INSERT INTO Orders (date, amount)
+VALUES  ('2024-01-01', 100),
+        ('2024-01-02', 200),
+        ('2024-01-02', 150),
+        ('2024-01-03', 300),
+        ('2024-01-04', 75),
+        ('2024-01-05', 120),
+        ('2024-01-05', 250),
+        ('2024-01-05', 180),
+        ('2024-01-06', 90),
+        ('2024-01-07', 210);
+
+SELECT Orders.*,
+    AVG(amount) OVER (ORDER BY date RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) avg_amount
+FROM Orders;    
+
+--7
+WITH helper as (SELECT Sales.*,
+    SUM(quantity) OVER (ORDER BY day 
+                        RANGE BETWEEN INTERVAL 1 DAY PRECEDING AND 
+                        INTERVAL 1 DAY PRECEDING) diff
+FROM Sales)
+SELECT day, quantity, 
+    CASE
+        WHEN diff IS NULL THEN 'unknown'
+        WHEN quantity > diff THEN 'yes'
+        ELSE 'no'
+    END sales_better_than_yesterday
+FROM helper;    
+
+
+/*  
+****    11.5    ****
+*/
