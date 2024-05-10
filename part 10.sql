@@ -268,3 +268,62 @@ GROUP BY group_director;
 ****    11.3    ****
 */
 
+DROP TABLE IF EXISTS Films;
+CREATE TABLE Films
+(
+    id           INT PRIMARY KEY AUTO_INCREMENT,
+    title        VARCHAR(20),
+    director     VARCHAR(20),
+    release_year INT,
+    rating INT
+);
+
+INSERT INTO Films (title, director, release_year, rating) 
+VALUES ('Toy Story 2', 'John Lasseter', 1999, 99),
+       ('WALL-E', 'Andrew Stanton', 2008, 100),
+       ('Ratatouille', 'Brad Bird', 2007, 87),
+       ('Up', 'Pete Docter', 2009, 100),
+       ('Brave', 'Brenda Chapman', 2012, 50),
+       ('Monsters University', 'Dan Scanlon', 2013, 65),
+       ('Cars 2', 'John Lasseter', 2011, 90),
+       ('Finding Nemo', 'Andrew Stanton', 2003, 50),
+       ('Toy Story', 'John Lasseter', 1995, 78),
+       ('The Incredibles', 'Brad Bird', 2004, 81);
+
+--1
+SELECT title, director, rating,
+    AVG(rating) OVER (PARTITION BY director) avg_rating_by_director
+FROM Films
+ORDER BY 2, 3;
+
+--2
+SELECT title, director, 
+    COUNT(*) OVER (PARTITION BY director) - 1 films_with_same_director
+FROM Films;   
+
+--3
+SELECT title, director,
+    IF(release_year IS NULL, 
+       COUNT(release_year) OVER () - 1, 
+       COUNT(release_year) OVER ()) other_films_without_release_year
+FROM Films    
+
+--4
+SELECT title, rating,
+        ROUND(
+        (SUM(rating) OVER () - rating) / (COUNT(*) OVER () - 1)
+        ) other_films_avg_rating
+FROM Films;        
+
+--5
+SELECT title, rating,    
+    CONCAT(ROUND(
+        (rating / MIN(rating) OVER ()) * 100 - 100
+        ), '%') better_than_low_rated_film
+FROM Films
+ORDER BY 2 DESC ;
+
+
+/*  
+****    11.4    ****
+*/
