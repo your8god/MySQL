@@ -169,6 +169,102 @@ SELECT * FROM Directors
 ORDER BY NTILE(2) OVER () DESC, rating DESC;
 
 --4
+WITH helper AS 
+(
+    SELECT Directors.*,
+        DENSE_RANK() OVER (PARTITION BY country ORDER BY rating DESC) AS res
+    FROM Directors
+)
+SELECT full_name, country, rating
+FROM helper
+WHERE res = 1
+ORDER BY 2, 1;
+
 --5
+DROP TABLE IF EXISTS Films;
+CREATE TABLE Films
+(
+    id           INT PRIMARY KEY AUTO_INCREMENT,
+    title        VARCHAR(20),
+    director     VARCHAR(20),
+    release_year INT
+);
+
+INSERT INTO Films (title, director, release_year) 
+VALUES ('Toy Story 2', 'John Lasseter', 1999),
+       ('WALL-E', 'Andrew Stanton', 2008),
+       ('Ratatouille', 'Brad Bird', 2007),
+       ('Up', 'Pete Docter', 2009),
+       ('Brave', 'Brenda Chapman', 2012),
+       ('Monsters University', 'Dan Scanlon', 2013),
+       ('Cars 2', 'John Lasseter', 2011),
+       ('Finding Nemo', 'Andrew Stanton', 2003),
+       ('Toy Story', 'John Lasseter', 1995),
+       ('The Incredibles', 'Brad Bird', 2004);
+
+WITH helper AS 
+(
+    SELECT director, COUNT(*) number_of_films
+    FROM Films
+    GROUP BY director
+)
+SELECT 
+    DENSE_RANK() OVER (ORDER BY number_of_films DESC) place,
+    helper.*
+FROM helper
+ORDER BY 1, 2
+
+
+SELECT DENSE_RANK() OVER (ORDER BY COUNT(*) DESC) AS place,
+       director,
+       COUNT(*) AS number_of_films
+FROM Films
+GROUP BY director
+ORDER BY place, director;
+
 --6
+SET @size := (SELECT COUNT(*) DIV 3 FROM Directors);
+WITH helper AS 
+(
+    SELECT NTILE(@size) OVER () group_number, rating
+    FROM Directors
+)
+SELECT 
+    group_number,
+    AVG(rating) avg_rating
+FROM helper
+GROUP BY group_number
+ORDER BY 1 DESC;
+
 --7
+SET @size := (SELECT COUNT(*) DIV 2 FROM Directors);
+WITH gr AS
+(
+    SELECT full_name, country, id
+        NTILE(@size) OVER () n
+    FROM Directors
+)
+SELECT CONCAT(g1.full_name, ', ', g2.full_name) pair,
+    IF(g1.country = g2.country, 'yes', 'no') from_same_country 
+FROM gr g1 JOIN gr g2 ON g1.n = g2.n AND g1.id < g2.id;
+
+
+SELECT COUNT(*) DIV 2 INTO @count_of_groups
+FROM Directors;
+
+WITH GroupDirectors AS (
+    SELECT Directors.*,
+           NTILE(@count_of_groups) OVER (ORDER BY id) AS group_director
+    FROM Directors
+)
+
+SELECT GROUP_CONCAT(full_name SEPARATOR ', ') AS pair,
+       IF(COUNT(DISTINCT country) = 1, 'yes', 'no') AS from_same_country
+FROM GroupDirectors
+GROUP BY group_director;
+
+
+/*  
+****    11.3    ****
+*/
+
