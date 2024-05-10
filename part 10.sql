@@ -428,3 +428,138 @@ FROM helper;
 /*  
 ****    11.5    ****
 */
+
+DROP TABLE IF EXISTS Sales;
+CREATE TABLE Sales
+(
+    month INT,
+    quantity INT
+);
+
+INSERT INTO Sales (month, quantity)
+VALUES (1, 180000),
+       (2, 210000),
+       (3, 195000),
+       (4, 245000),
+       (5, 200000),
+       (6, 230000),
+       (7, 295000),
+       (8, 215000),
+       (9, 250000),
+       (10, 265000),
+       (11, 220000),
+       (12, 290000);
+
+--1
+SELECT Sales.*,
+    FIRST_VALUE(month) OVER (ORDER BY quantity DESC)  highest_sales_month
+FROM Sales
+ORDER BY month;
+
+--2
+DROP TABLE IF EXISTS Orders;
+CREATE TABLE Orders
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    date DATE,
+    amount INT
+);
+
+INSERT INTO Orders (date, amount)
+VALUES  ('2024-01-01', 100),
+        ('2024-01-02', 200),
+        ('2024-01-02', 150),
+        ('2024-01-03', 300),
+        ('2024-01-04', 75),
+        ('2024-01-05', 120),
+        ('2024-01-05', 250),
+        ('2024-01-05', 180),
+        ('2024-01-06', 90),
+        ('2024-01-07', 210);
+
+SELECT Orders.*,
+    ABS(date - FIRST_VALUE(date) OVER (ORDER BY amount)) days_between_cheapest_order
+FROM Orders
+ORDER BY id;
+
+--3
+WITH helper AS (
+    SELECT Sales.*,
+        NTILE(4) OVER () quarter
+    FROM Sales
+)    
+SELECT month, quantity,
+    FIRST_VALUE(month) OVER (PARTITION BY quarter ORDER BY quantity DESC) 
+        highest_sales_month_within_quarter,
+    MAX(quantity) OVER (PARTITION BY quarter) 
+        highest_sales_quantity_within_quarter
+FROM helper
+ORDER BY 1;
+
+--4
+WITH helper AS (
+    SELECT Sales.*,
+        NTILE(4) OVER () quarter
+    FROM Sales
+)    
+SELECT DISTINCT quarter,
+    FIRST_VALUE(month) OVER (PARTITION BY quarter ORDER BY quantity) lowest_sales_month,
+    MIN(quantity) OVER (PARTITION BY quarter) lowest_sales_quantity
+FROM helper
+ORDER BY 1;
+
+--5
+WITH helper AS
+(
+    SELECT DISTINCT date,
+        ABS(NTH_VALUE(amount, 1) OVER wnd - NTH_VALUE(amount, 2) OVER wnd) two_first_orders_amount_diff
+    FROM Orders
+    WINDOW wnd AS (PARTITION BY date ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+)
+SELECT * FROM helper
+WHERE two_first_orders_amount_diff IS NOT NULL;
+
+--6
+SELECT Sales.*,
+    LAG(quantity, 1, 0) OVER (ORDER BY month) prev_month_sales,
+    LAG(quantity, 2, 0) OVER (ORDER BY month) second_prev_month_sales
+FROM Sales;
+
+--7
+SELECT Sales.*,
+    LAG(quantity, 3, 0) OVER (ORDER BY month) prev_quarter_month_sales
+FROM Sales;    
+
+--8
+WITH helper AS 
+(
+    SELECT Sales.*,
+        LAG(quantity, 1, 0) OVER () h
+    FROM Sales
+)
+SELECT month, quantity 
+FROM helper
+WHERE quantity > h;
+
+--9
+SELECT Sales.*,
+    ABS(LEAD(quantity) OVER () - quantity) next_month_sales_diff
+FROM Sales
+LIMIT 11;
+
+--10
+WITH helper AS
+(
+    SELECT Sales.*,
+        NTILE(4) OVER () quarter
+    FROM Sales
+), res_with_null AS
+(
+    SELECT quarter, 
+        (ABS(quantity - LEAD(quantity, 1) OVER sol) +
+        ABS(LEAD(quantity, 1) OVER sol - LEAD(quantity, 2) OVER sol)) / 2 sales_avg_diff
+    FROM helper
+    WINDOW sol AS (PARTITION BY quarter)
+)
+SELECT * FROM res_with_null
+WHERE sales_avg_diff IS NOT NULL;
