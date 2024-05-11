@@ -697,6 +697,40 @@ WHERE last_order_day = (SELECT MAX(last_order_day) FROM helper
                         WHERE h.customer_id = customer_id)
 
 --5
+DROP TABLE IF EXISTS Payments;
+CREATE TABLE Payments
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    card_id INT,
+    amount INT,
+    completed_on DATETIME
+);
+
+INSERT INTO Payments (user_id, card_id, amount, completed_on)
+VALUES (1, 1, 100, '2024-01-01 12:00:00'),
+       (1, 1, 100, '2024-01-01 12:06:00'),
+       (2, 2, 250, '2024-01-02 18:00:00'),
+       (3, 1, 50, '2024-01-02 18:05:00'),
+       (2, 2, 250, '2024-01-02 18:08:00'),
+       (3, 1, 10, '2024-01-03 10:00:00'),
+       (3, 1, 10, '2024-01-03 10:10:00'),
+       (1, 2, 80, '2024-01-03 10:00:00'),
+       (1, 2, 80, '2024-01-03 10:10:01'),
+       (4, 1, 200, '2024-01-03 13:00:00');
+
+WITH helper as (
+    SELECT
+        LAST_VALUE(id) OVER (
+            PARTITION BY user_id, card_id, amount ORDER BY completed_on
+            RANGE BETWEEN CURRENT ROW AND INTERVAL 10 MINUTE FOLLOWING) repeat_payment_id
+    FROM Payments
+)
+SELECT * FROM helper
+GROUP BY 1
+HAVING COUNT(*) > 1
+ORDER BY 1;
+
 --6
 --7
 --8
