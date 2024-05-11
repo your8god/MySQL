@@ -563,3 +563,142 @@ WITH helper AS
 )
 SELECT * FROM res_with_null
 WHERE sales_avg_diff IS NOT NULL;
+
+
+/*  
+****    11.6    ****
+*/
+
+--1
+DROP TABLE IF EXISTS Rides;
+CREATE TABLE Rides
+(
+    passenger_id INT,
+    amount INT,
+    requested_on DATETIME
+);
+
+INSERT INTO Rides (passenger_id, amount, requested_on)
+VALUES (1, 30, '2024-01-01 15:45:00'),
+       (2, 25, '2024-02-12 07:00:00'),
+       (3, 15, '2024-01-13 10:30:00'),
+       (1, 15, '2024-02-08 18:15:00'),
+       (1, 35, '2024-02-05 12:15:00'),
+       (4, 70, '2024-01-20 11:55:00'),
+       (4, 110, '2024-01-01 12:40:00'),
+       (4, 25, '2024-02-01 21:30:00'),
+       (3, 80, '2024-01-10 23:00:00'),
+       (1, 10, '2024-01-02 18:10:00');
+
+WITH helper AS 
+(
+    SELECT Rides.*,
+        ROW_NUMBER() OVER (PARTITION BY passenger_id) n
+    FROM Rides
+)
+SELECT passenger_id, amount, requested_on
+FROM helper
+WHERE n = 3;
+
+--2
+DROP TABLE IF EXISTS Posts;
+CREATE TABLE Posts
+(
+    user_id INT,
+    day DATE,
+    quantity INT
+);
+
+INSERT INTO Posts (user_id, day, quantity)
+VALUES (1, '2023-01-01', 5),
+       (2, '2023-01-01', 8),
+       (3, '2023-01-01', 3),
+       (4, '2023-01-01', 12),
+       (1, '2023-01-02', 6),
+       (3, '2023-01-02', 9),
+       (4, '2023-01-02', 4),
+       (1, '2023-01-03', 7),
+       (4, '2023-01-03', 10),
+       (1, '2023-01-04', 2),
+       (1, '2023-01-05', 1),
+       (4, '2023-01-07', 11),
+       (1, '2023-01-07', 8);
+
+SELECT Posts.*,
+    AVG(quantity) OVER (
+        PARTITION BY user_id ORDER BY day RANGE BETWEEN INTERVAL 2 DAY PRECEDING AND CURRENT ROW
+    ) three_day_moving_avg_quantity
+FROM Posts;    
+
+--3
+DROP TABLE IF EXISTS BoxOffice;
+CREATE TABLE BoxOffice
+(
+    month INT,
+    movie VARCHAR(40),
+    amount INT
+);
+
+INSERT INTO BoxOffice (month, movie, amount)
+VALUES (1, 'Scott Pilgrim Vs. The World', 1500),
+       (2, 'Scott Pilgrim Vs. The World', 1400),
+       (2, 'Logan', 1100),
+       (3, 'Scott Pilgrim Vs. The World', 1700),
+       (3, 'Logan', 1200),
+       (4, 'Scott Pilgrim Vs. The World', 1600),
+       (4, 'Spider-Man: Into The Spider-Verse', 2000),
+       (4, 'La La Land', 1300),
+       (5, 'Spider-Man: Into The Spider-Verse', 2100),
+       (6, 'Spider-Man: Into The Spider-Verse', 1800);
+
+WITH helper AS
+(
+    SELECT movie, amount first_month_box_office,
+        ROW_NUMBER() OVER (PARTITION BY movie ORDER BY month) n
+    FROM BoxOffice
+)
+SELECT movie, first_month_box_office
+FROM helper
+WHERE n = 1;
+
+--4
+DROP TABLE IF EXISTS Orders;
+CREATE TABLE Orders
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    customer_id INT,
+    amount INT,
+    purchased_on DATETIME
+);
+
+INSERT INTO Orders (customer_id, amount, purchased_on)
+VALUES (2, 10, '2024-01-01 08:40:00'),
+       (2, 90, '2024-01-01 10:10:00'),
+       (1, 500, '2024-01-07 12:00:00'),
+       (1, 100, '2024-01-07 18:45:00'),
+       (1, 350, '2024-01-07 20:00:00'),
+       (3, 110, '2024-02-05 09:00:00'),
+       (3, 100, '2024-02-12 08:00:00'),
+       (2, 900, '2024-02-12 10:00:00'),
+       (3, 1600, '2024-02-12 12:10:00'),
+       (3, 75, '2024-02-12 12:20:00');
+
+WITH helper AS (
+    SELECT 
+        customer_id,    
+        DATE(purchased_on) last_order_day,
+        COUNT(*) orders_count
+    FROM Orders
+    GROUP BY 1, 2
+    ORDER BY 1
+)
+SELECT * FROM helper h
+WHERE last_order_day = (SELECT MAX(last_order_day) FROM helper 
+                        WHERE h.customer_id = customer_id)
+
+--5
+--6
+--7
+--8
+--9
+--10
