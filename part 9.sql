@@ -1,5 +1,5 @@
 /*  
-****    11.1    ****
+****    12.1    ****
 */
 
 --1
@@ -548,7 +548,7 @@ WHERE ebay IS NOT NULL;
 
 
 /*  
-****    11.2    ****
+****    12.2    ****
 */
 
 --1
@@ -1386,7 +1386,7 @@ ORDER BY 2 DESC, 1;
 
 
 /*  
-****    11.3    ****
+****    12.3    ****
 */
 
 --1
@@ -2161,7 +2161,7 @@ WHERE V2.visited_on IS NOT NULL;
 
 
 /*  
-****    11.4    ****
+****    12.4    ****
 */
 
 --1
@@ -3024,7 +3024,7 @@ WHERE (name, surname) IN (
 
 
 /*  
-****    11.5    ****
+****    12.5    ****
 */
 
 --1
@@ -3713,7 +3713,7 @@ SELECT
 
 
 /*  
-****    11.6    ****
+****    12.6    ****
 */
 
 --1
@@ -4270,3 +4270,247 @@ WHERE change_date = (SELECT cur_date FROM NewTable WHERE product_id = PriceChang
 UNION
 SELECT product_id, 10.00 FROM NewTable
 WHERE cur_date IS NULL;
+
+
+/*  
+****    12.7    ****
+*/
+
+--1
+DROP TABLE IF EXISTS Customers;
+CREATE TABLE Customers
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    surname VARCHAR(50)
+);
+
+INSERT INTO Customers (name, surname)
+VALUES ('Ryan', 'Gosling'),
+       ('Margot', 'Robbie'),
+       ('Jennifer', 'Aniston'),
+       ('Alain', 'Delon'),
+       ('Jake', 'Gyllenhaal');
+
+DROP TABLE IF EXISTS Orders;
+CREATE TABLE Orders
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    store VARCHAR(50),
+    customer_id INT,
+    amount INT,
+    purchased_on DATETIME
+);
+
+INSERT INTO Orders (store, customer_id, amount, purchased_on)
+VALUES ('Two Cardinals', 1, 100, '2024-02-01 09:00:00'),
+       ('Lego World', 2, 200, '2024-01-15 07:30:00'),
+       ('POP SHOP', 4, 50, '2024-02-10 12:10:00'),
+       ('POP SHOP', 1, 90, '2024-01-20 10:00:00'),
+       ('Two Cardinals', 5, 210, '2024-01-15 08:00:00'),
+       ('POP SHOP', 3, 180, '2024-02-10 19:00:00'),
+       ('Two Cardinals', 1, 100, '2024-03-01 05:50:00'),
+       ('Lego World', 5, 1200, '2024-02-08 12:00:00'),
+       ('POP SHOP', 3, 90, '2024-02-11 09:00:00'),
+       ('Lego World', 2, 900, '2024-02-20 17:00:00');
+
+SELECT 
+    DENSE_RANK() OVER (PARTITION BY store ORDER BY amount DESC) rank_within_store_by_price,
+    store, name, surname, amount
+FROM Customers JOIN Orders ON Customers.id = customer_id;
+
+--2
+WITH helper AS
+(    
+    SELECT Orders.id, 
+        name, surname, store,
+        amount, purchased_on,
+        DENSE_RANK() OVER (PARTITION BY store ORDER BY purchased_on) r
+    FROM Orders JOIN Customers ON Customers.id = customer_id
+)
+SELECT id, name, surname, amount, purchased_on
+FROM helper
+WHERE store = 'POP SHOP' AND r = 2;
+
+--3
+SELECT 
+    name, 
+    surname,
+    amount,
+    purchased_on,
+    SUM(amount) OVER (ORDER BY purchased_on ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) increasing_amount
+FROM Customers JOIN Orders ON Customers.id = customer_id;
+
+--4
+DROP TABLE IF EXISTS DailyTemperature;
+CREATE TABLE DailyTemperature
+(
+    day DATE PRIMARY KEY,
+    avg_temperature DECIMAL(5, 2)
+);
+
+INSERT INTO DailyTemperature (day, avg_temperature)
+VALUES ('2024-02-01', -5.6),
+       ('2024-02-02', -4.3),
+       ('2024-02-03', -3.9),
+       ('2024-02-04', -2.7),
+       ('2024-02-05', -1.2),
+       ('2024-02-06', -0.5),
+       ('2024-02-07', 0.3),
+       ('2024-02-08', -2.1),
+       ('2024-02-09', -3.8),
+       ('2024-02-10', -4.5),
+       ('2024-02-11', -6.2),
+       ('2024-02-12', -6.8),
+       ('2024-02-13', -7.4),
+       ('2024-02-14', -7.9),
+       ('2024-02-15', -6.3),
+       ('2024-02-16', -5.7),
+       ('2024-02-17', -4.2),
+       ('2024-02-18', -3.6),
+       ('2024-02-19', -2.9),
+       ('2024-02-20', -1.4),
+       ('2024-02-21', -0.6),
+       ('2024-02-22', 0.4),
+       ('2024-02-23', -1.9),
+       ('2024-02-24', -3.7),
+       ('2024-02-25', -4.4),
+       ('2024-02-26', -6.1),
+       ('2024-02-27', -6.7),
+       ('2024-02-28', -7.2);
+
+SELECT day, avg_temperature,
+    LAG(avg_temperature, 3) OVER (ORDER BY day) avg_temperature_3_days_ago
+FROM DailyTemperature
+WHERE DAY(day) BETWEEN 7 AND 25
+LIMIT 30
+OFFSET 3;
+
+--5
+SELECT day, avg_temperature,
+    LEAD(avg_temperature, 7) OVER (ORDER BY day) avg_temperature_after_7_days
+FROM DailyTemperature
+LIMIT 14;
+
+--6
+SELECT day, avg_temperature,
+    COUNT(*) OVER 
+        (ORDER BY avg_temperature RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING) - 1
+        number_of_days_with_similar_temperature
+FROM DailyTemperature
+ORDER BY 1;
+
+--7
+DROP TABLE IF EXISTS Procedures;
+CREATE TABLE Procedures
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    provided_on DATETIME, 
+    doctor_id INT,
+    patient_id INT,
+    category VARCHAR(50),
+    price INT,
+    score INT
+);
+
+INSERT INTO Procedures (provided_on, doctor_id, patient_id, category, price, score)
+VALUES ('2024-01-01 12:00:00', 1, 21, 'X-Ray', 150, 5),
+       ('2024-02-01 14:00:00', 2, 13, 'Blood Test', 100, 4),
+       ('2024-03-01 09:00:00', 1, 1, 'Vaccination', 200, 4),
+       ('2024-01-01 13:00:00', 4, 25, 'X-Ray', 80, 3),
+       ('2024-02-01 10:00:00', 2, 16, 'X-Ray', 250, 5),
+       ('2024-02-01 09:00:00', 3, 16, 'Vaccination', 120, 4),
+       ('2024-01-10 12:00:00', 1, 10, 'Vaccination', 300, 2),
+       ('2024-01-10 16:00:00', 4, 9, 'X-Ray', 500, 5),
+       ('2024-02-20 07:00:00', 5, 25, 'Vaccination', 180, 5),
+       ('2024-02-01 13:00:00', 5, 9, 'Blood Test', 150, 3);
+
+SELECT provided_on,
+    category, score,
+    AVG(score) OVER 
+        (PARTITION BY category ORDER BY provided_on ROWS 
+         BETWEEN 1 PRECEDING AND 1 FOLLOWING) moving_avg_score
+FROM Procedures;
+
+--8
+SELECT provided_on, category, price,
+    LAG(price, 1, 0) OVER (ORDER BY provided_on) prev_procedure_price,
+    ABS(LAG(price, 1, 0) OVER (ORDER BY provided_on) - price) prev_procedure_price_difference
+FROM Procedures;
+
+--9
+SELECT provided_on, category, price, score,
+    FIRST_VALUE(price) OVER (PARTITION BY category ORDER BY score DESC) best_procedure_price,
+    ABS(FIRST_VALUE(price) OVER (PARTITION BY category ORDER BY score DESC) - price) best_procedure_price_difference
+FROM Procedures;
+
+--10
+SELECT provided_on, category, price,
+    MAX(price) OVER (ORDER BY DATE(provided_on) RANGE BETWEEN
+                    INTERVAL 1 DAY PRECEDING AND CURRENT ROW) yesterday_today_max_price 
+FROM Procedures;                    
+
+--11
+SELECT
+    DATE(provided_on) procedure_date,
+    COUNT(*) number_of_procedures,
+    ABS(LAG(COUNT(*)) OVER (ORDER BY DATE(provided_on)) - COUNT(*)) prev_date_number_of_procedures_difference
+FROM Procedures
+GROUP BY 1;
+
+--12
+DROP TABLE IF EXISTS Doctors;
+CREATE TABLE Doctors
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    surname VARCHAR(50)
+);
+
+INSERT INTO Doctors (name, surname)
+VALUES ('Stephen', 'Strange'),
+       ('John', 'Zoidberg'),
+       ('Victor', 'Frankenstein'),
+       ('Gregory', 'House'),
+       ('John', 'Doolittle');
+
+DROP TABLE IF EXISTS Procedures;
+CREATE TABLE Procedures
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    provided_on DATETIME, 
+    doctor_id INT,
+    patient_id INT,
+    category VARCHAR(50),
+    price INT,
+    score INT
+);
+
+INSERT INTO Procedures (provided_on, doctor_id, patient_id, category, price, score)
+VALUES ('2024-01-01 12:00:00', 1, 21, 'X-Ray', 150, 5),
+       ('2024-02-01 14:00:00', 2, 13, 'Blood Test', 100, 5),
+       ('2024-02-15 14:00:00', 1, 11, 'X-Ray', 450, 5),
+       ('2024-03-02 05:00:00', 1, 9, 'Vaccination', 100, 4),
+       ('2024-02-01 13:00:00', 5, 9, 'Blood Test', 150, 5),
+       ('2024-03-01 09:00:00', 3, 1, 'Vaccination', 200, 4),
+       ('2024-01-01 13:00:00', 4, 25, 'X-Ray', 80, 5),
+       ('2024-02-22 19:00:00', 3, 11, 'Vaccination', 300, 4),
+       ('2024-02-01 10:00:00', 2, 16, 'X-Ray', 250, 5),
+       ('2024-02-01 09:00:00', 1, 16, 'Vaccination', 120, 4),
+       ('2024-01-10 12:00:00', 1, 10, 'Vaccination', 300, 3),
+       ('2024-01-16 08:00:00', 4, 2, 'X-Ray', 450, 5),
+       ('2024-02-20 07:00:00', 5, 25, 'Vaccination', 180, 5),
+       ('2024-01-10 16:00:00', 4, 9, 'X-Ray', 500, 5),
+       ('2024-02-02 12:00:00', 2, 10, 'Blood Test', 110, 5);
+
+WITH helper AS
+(
+    SELECT DISTINCT category,
+        CONCAT(name, ' ', surname) doctor,
+        COUNT(*) OVER (PARTITION BY doctor_id, score, category ORDER BY Doctors.id, score, category) fives
+    FROM Procedures JOIN Doctors ON Doctors.id = doctor_id
+    WHERE score = 5
+)
+SELECT category, doctor, fives number_of_high_score_procedures
+FROM helper H
+WHERE fives = (SELECT MAX(fives) FROM helper WHERE H.category = category);

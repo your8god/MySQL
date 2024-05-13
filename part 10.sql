@@ -732,7 +732,125 @@ HAVING COUNT(*) > 1
 ORDER BY 1;
 
 --6
+DROP TABLE IF EXISTS Measurements;
+CREATE TABLE Measurements
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    result INT,
+    received_on DATETIME
+);
+
+INSERT INTO Measurements (result, received_on)
+VALUES (1100, '2024-01-01 12:00:00'),
+       (1000, '2024-01-01 13:00:00'),
+       (1300, '2024-01-01 14:00:00'),
+       (1200, '2024-01-01 15:00:00'),
+       (1100, '2024-01-01 07:00:00'),
+       (450, '2024-01-31 08:00:00'),
+       (600, '2024-01-31 09:00:00'),
+       (650, '2024-01-31 10:00:00'),
+       (700, '2024-02-01 07:00:00'),
+       (600, '2024-02-01 18:00:00');
+
+WITH helper AS
+(
+    SELECT result, 
+        DATE(received_on) measurement_day,
+        ROW_NUMBER() OVER (PARTITION BY DATE(received_on) ORDER BY received_on) nday
+    FROM Measurements
+)
+SELECT 
+    measurement_day,
+    SUM(IF(nday % 2 != 0, result, 0)) odd_measurements_results_sum,
+    SUM(IF(nday % 2 = 0, result, 0)) even_measurements_results_sum
+FROM helper
+GROUP BY 1;
+
 --7
+DROP TABLE IF EXISTS Songs;
+CREATE TABLE Songs
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    artist VARCHAR(50),
+    title VARCHAR(50)
+);
+
+INSERT INTO Songs (artist, title)
+VALUES ('Cemeteries', 'Empty Camps'),
+       ('Cemeteries', 'Can You Hear Them Sing?'),
+       ('CHVRCHES', 'Never Say Die'),
+       ('CHVRCHES', 'My Enemy'),
+       ('Daughter', 'Home'),
+       ('Daughter', 'No Care'),
+       ('Wintersleep', 'Metropolis'),
+       ('Wintersleep', 'Wind'),
+       ('Lana Del Rey', 'Diet Mountain Dew'),
+       ('Lana Del Rey', 'Young And Beautiful');
+       
+DROP TABLE IF EXISTS SongCharts;
+CREATE TABLE SongCharts
+(
+    day DATE,
+    place INT,
+    song_id INT
+);
+
+INSERT INTO SongCharts (day, place, song_id)
+VALUES ('2024-01-01', 1, 9),
+       ('2024-01-01', 2, 7),
+       ('2024-01-01', 3, 8),
+       ('2024-01-02', 1, 9),
+       ('2024-01-02', 2, 3),
+       ('2024-01-02', 3, 8),
+       ('2024-01-03', 1, 1),
+       ('2024-01-03', 2, 10),
+       ('2024-01-03', 3, 6),
+       ('2024-01-04', 1, 6),
+       ('2024-01-04', 2, 1),
+       ('2024-01-04', 3, 9),
+       ('2024-01-05', 1, 2),
+       ('2024-01-05', 2, 7),
+       ('2024-01-05', 3, 5);
+
+WITH helper AS (
+    SELECT DISTINCT artist,
+        COUNT(*) OVER (PARTITION BY artist) cnt
+    FROM Songs JOIN SongCharts ON song_id = id AND place != 3   
+)
+SELECT artist FROM helper
+WHERE cnt = (SELECT MAX(cnt) FROM helper);
+
 --8
+DROP TABLE IF EXISTS Orders;
+CREATE TABLE Orders
+(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    category VARCHAR(50),
+    product VARCHAR(50),
+    amount INT
+);
+
+INSERT INTO Orders (category, product, amount)
+VALUES ('Electronics', 'iPhone 15', 1000),
+       ('Clothing', 'Jeans', 80),
+       ('Electronics', 'iPhone 15', 1010),
+       ('Electronics', 'iPad Air', 350),
+       ('Clothing', 'Sweater', 55),
+       ('Electronics', 'iPhone 15', 1050),
+       ('Electronics', 'MacBook Pro 14', 1300),
+       ('Clothing', 'Sweater', 60),
+       ('Electronics', 'iPad Air', 300),
+       ('Electronics', 'iPad Air', 300);
+
+WITH helper AS
+(
+    SELECT category, product, SUM(amount) total_amount,
+        ROW_NUMBER() OVER (PARTITION BY category ORDER BY SUM(amount) DESC) n
+    FROM Orders
+    GROUP BY 1, 2
+)
+SELECT category, product, total_amount FROM helper
+WHERE n < 3;
+
 --9
 --10
