@@ -853,4 +853,52 @@ SELECT category, product, total_amount FROM helper
 WHERE n < 3;
 
 --9
+DROP TABLE IF EXISTS ServerUtilization;
+CREATE TABLE ServerUtilization
+(
+    server_id INT,
+    session_status VARCHAR(5),
+    status_time DATETIME
+);
+
+INSERT INTO ServerUtilization (server_id, session_status, status_time)
+VALUES (1, 'start', '2024-01-01 08:00:00'),
+       (2, 'start', '2024-01-01 08:00:00'),
+       (3, 'start', '2024-01-01 08:00:00'),
+       (3, 'stop', '2024-01-02 01:00:00'),
+       (1, 'stop', '2024-01-05 07:00:00'),
+       (2, 'stop', '2024-01-10 09:00:00'),
+       (1, 'start', '2024-01-11 10:00:00'),
+       (3, 'start', '2024-01-11 10:00:00'),
+       (3, 'stop', '2024-01-11 17:00:00'),
+       (1, 'stop', '2024-01-15 10:00:00');
+
+WITH helper AS
+(
+    SELECT ServerUtilization.*,
+        LEAD(status_time) OVER (wnd) next_val,
+        ROW_NUMBER() OVER(wnd) n
+    FROM ServerUtilization
+    WINDOW wnd AS (PARTITION BY server_id ORDER BY status_time)
+)
+
+SELECT 
+    server_id,
+    SUM(TIMESTAMPDIFF(SECOND, status_time, next_val)) DIV (24 * 60 * 60) total_uptime_days 
+FROM helper
+WHERE n % 2 <> 0
+
 --10
+WITH helper AS
+(
+    SELECT 
+        MONTHNAME(purchased_on) month,
+        MONTH(purchased_on) n,
+        product,
+        SUM(amount) total_amount
+    FROM Orders
+    GROUP BY 1, 2, 3
+)
+SELECT month, product, total_amount,
+    LAG(total_amount) OVER (PARTITION BY product ORDER BY n) nearest_prev_month_total_amount
+FROM helper;
